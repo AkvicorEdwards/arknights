@@ -16,21 +16,53 @@ from cnocr import CnOcr
 import time
 
 
-def get_memory():
-    with open('/proc/meminfo', 'r') as mem:
-        free_memory = 0
-        for i in mem:
-            sline = i.split()
-            if str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
-                free_memory += int(sline[1])
-    return free_memory
+#======================================================
 
+## ==== 必须修改 ==== ##
 
+# 使用命令: adb devices
+selected_device = "xxxxxxxx"
+# 屏幕分辨率(可通过截图获得)
+resolution_x = 3120
+resolution_y = 1440
+
+## 屏幕左边界 = 屏幕上边界 = 0
+## 屏幕右边界 = resolution_x
+## 屏幕下边界 = resolution_y
+## 文字在屏幕中的 左边界 上边界 右边界 下边界
+## 推荐使用开发者模式精确定位
+
+# 开始行动
+resolution_1 = (2730, 1287, 2943, 1342)
+# 本次行动配置不可更改
+resolution_2 = (1290, 1360, 1790, 1410)
+# 接管作战
+resolution_3 = (1290, 1270, 1490, 1350)
+# 行动结束
+resolution_4 = (140, 1170, 850, 1340)
+# 理智已恢复
+resolution_5 = (1680, 676, 1910, 757)
+# 剩余理智
+resolution_v1 = (2730, 50, 3000, 110)
+# 关卡需要理智
+resolution_v2 = (2850, 1355, 2955, 1404)
+
+press_enter = (2750,1330)
+press_start = (2480,940)
+press_finished = (700,1000)
+press_lvup = (600, 740)
+
+#======================================================
+sel_device = ""
+if selected_device != "xxxxxxxx":
+    sel_device = "-s %s"%selected_device
+    print(sel_device)
 ocr = CnOcr()
 
 
 def main():
-
+    start = time.time()
+    loop = time.time()
     while True:
         try:
             os.remove("00.png")
@@ -41,16 +73,15 @@ def main():
             #os.remove("v2.png")
         except:
             pass
-        # print("MEM:", get_memory())
-        p = subprocess.Popen('adb shell screencap -p /sdcard/00.png', stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen('adb %s shell screencap -p /sdcard/00.png'%sel_device, stdout=subprocess.PIPE, shell=True)
         p.wait()
         time.sleep(1)
-        p = subprocess.Popen('adb pull /sdcard/00.png 00.png', stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen('adb %s pull /sdcard/00.png 00.png'%sel_device, stdout=subprocess.PIPE, shell=True)
         p.wait()
         time.sleep(1)
         im = Image.open(r"00.png")
 
-        im1 = im.crop((2750, 1287, 2750 + 213, 1287 + 55))
+        im1 = im.crop(resolution_1)
         im1.save(r"01.png")
         im1.close()
         res = ocr.ocr("01.png")
@@ -61,20 +92,25 @@ def main():
             if '始' in r:
                 n += 1
         if n == 2:
-            print("select 1")
-            imv1 = im.crop((2730, 50, 2890, 110))
+            imv1 = im.crop(resolution_v1)
             imv1.save(r"v1.png")
             imv1.close()
             res = ocr.ocr("v1.png")
             val1 = 0
             for i in res:
                 for j in i:
-                    if j not in "1234567890":
+                    if j == '/':
                         break
+                    if j not in "1234567890loOLiI][|)(!}{":
+                        continue
+                    if j in "LliI][|)(!}{":
+                        j = '1'
+                    if j in "oO":
+                        j = '0'
                     val1 *= 10
                     val1 += int(j)
                 break
-            imv2 = im.crop((2850, 1355, 2955, 1404))
+            imv2 = im.crop(resolution_v2)
             im.close()
             imv2.save(r"v2.png")
             imv2.close()
@@ -82,19 +118,26 @@ def main():
             val2 = 0
             for i in res:
                 for j in i:
-                    if j not in "1234567890":
+                    if j == '/':
+                        break
+                    if j not in "1234567890loOLiI][|)(!}{":
                         continue
+                    if j in "LliI][|)(!}{":
+                        j = '1'
+                    if j in "oO":
+                        j = '0'
                     val2 *= 10
                     val2 += int(j)
                 break
-            print(val1, val2, val1 // val2)
+            print("Remain: %d"%(val1//val2))
+            #print("Remain: %d   -%d/%d"%(val1//val2, val1, val2))
             if val1 // val2 >= 1:
-                p = subprocess.Popen('adb shell input tap 2750 1330', stdout=subprocess.PIPE, shell=True)
+                p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_enter[0],press_enter[1]), stdout=subprocess.PIPE, shell=True)
                 p.wait()
-            time.sleep(1.5)
+            time.sleep(2)
             continue
 
-        im2 = im.crop((1290, 1360, 1790, 1410))
+        im2 = im.crop(resolution_2)
         im2.save(r"02.png")
         im2.close()
         res = ocr.ocr("02.png")
@@ -117,17 +160,38 @@ def main():
             if '改' in r:
                 n += 1
         if n >= 7:
-            print("select 2")
-            p = subprocess.Popen('adb shell input tap 2480 940', stdout=subprocess.PIPE, shell=True)
+            print("Start")
+            p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_start[0],press_start[1]), stdout=subprocess.PIPE, shell=True)
             p.wait()
-            time.sleep(1)
+            start = time.time()
+            time.sleep(7)
             im.close()
             continue
 
-        im3 = im.crop((140, 1170, 850, 1340))
+        im3 = im.crop(resolution_3)
         im3.save(r"03.png")
         im3.close()
         res = ocr.ocr("03.png")
+        n = 0
+        for r in res:
+            if '接' in r:
+                n += 1
+            if '管' in r:
+                n += 1
+            if '作' in r:
+                n += 1
+            if '战' in r:
+                n += 1
+        if n >= 3:
+            print("Running")
+            im.close()
+            time.sleep(2)
+            continue
+        
+        im4 = im.crop(resolution_4)
+        im4.save(r"04.png")
+        im4.close()
+        res = ocr.ocr("04.png")
         n = 0
         for r in res:
             if '结' in r:
@@ -135,14 +199,41 @@ def main():
             if '束' in r:
                 n += 1
         if n == 2:
-            print("select 3")
-            p = subprocess.Popen('adb shell input tap 700 1000', stdout=subprocess.PIPE, shell=True)
+            print("Finished %ds %ds"%(int(time.time()-start), int(time.time()-loop)))
+            loop = time.time()
+            p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_finished[0],press_finished[1]), stdout=subprocess.PIPE, shell=True)
             p.wait()
             im.close()
-            time.sleep(1.5)
+            time.sleep(1)
             continue
+        
+        im5 = im.crop(resolution_5)
+        im5.save(r"05.png")
+        im5.close()
+        res = ocr.ocr("05.png")
+        n = 0
+        for r in res:
+            if '理' in r:
+                n += 1
+            if '智' in r:
+                n += 1
+            if '已' in r:
+                n += 1
+            if '恢' in r:
+                n += 1
+            if '复' in r:
+                n += 1
+        if n >= 4:
+            print("LV UP")
+            p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_lvup[0],press_lvup[1]), stdout=subprocess.PIPE, shell=True)
+            p.wait()
+            im.close()
+            time.sleep(1)
+            continue
+        
 
         print("No Action")
+
         im.close()
         time.sleep(2)
 
