@@ -63,6 +63,7 @@ ocr = CnOcr()
 def main():
     start = time.time()
     loop = time.time()
+    run_cnt = 0
     while True:
         try:
             os.remove("00.png")
@@ -129,8 +130,11 @@ def main():
                     val2 *= 10
                     val2 += int(j)
                 break
-            print("Remain: %d"%(val1//val2))
-            #print("Remain: %d   -%d/%d"%(val1//val2, val1, val2))
+            if run_cnt > 0:
+                print("")
+                run_cnt = 0
+            #print("Remain: %d"%(val1//val2))
+            print("Remain: %d   %d/%d"%(val1//val2, val1, val2))
             if val1 // val2 >= 1:
                 p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_enter[0],press_enter[1]), stdout=subprocess.PIPE, shell=True)
                 p.wait()
@@ -160,11 +164,15 @@ def main():
             if '改' in r:
                 n += 1
         if n >= 7:
+            if run_cnt > 0:
+                print("")
+                run_cnt = 0
             print("Start")
             p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_start[0],press_start[1]), stdout=subprocess.PIPE, shell=True)
             p.wait()
             start = time.time()
-            time.sleep(7)
+            run_cnt = 0
+            time.sleep(20)
             im.close()
             continue
 
@@ -183,11 +191,12 @@ def main():
             if '战' in r:
                 n += 1
         if n >= 3:
-            print("Running")
+            run_cnt += 1
+            print("Running %d"%run_cnt, end="\r")
             im.close()
             time.sleep(2)
             continue
-        
+
         im4 = im.crop(resolution_4)
         im4.save(r"04.png")
         im4.close()
@@ -199,14 +208,17 @@ def main():
             if '束' in r:
                 n += 1
         if n == 2:
+            if run_cnt > 0:
+                print("")
+                run_cnt = 0
             print("Finished %ds %ds"%(int(time.time()-start), int(time.time()-loop)))
             loop = time.time()
             p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_finished[0],press_finished[1]), stdout=subprocess.PIPE, shell=True)
             p.wait()
             im.close()
-            time.sleep(1)
+            time.sleep(3.5)
             continue
-        
+
         im5 = im.crop(resolution_5)
         im5.save(r"05.png")
         im5.close()
@@ -224,16 +236,21 @@ def main():
             if '复' in r:
                 n += 1
         if n >= 4:
+            if run_cnt > 0:
+                print("")
+                run_cnt = 0
             print("LV UP")
             p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_lvup[0],press_lvup[1]), stdout=subprocess.PIPE, shell=True)
             p.wait()
             im.close()
             time.sleep(1)
             continue
-        
 
+
+        if run_cnt > 0:
+            print("")
+            run_cnt = 0
         print("No Action")
-
         im.close()
         time.sleep(2)
 
