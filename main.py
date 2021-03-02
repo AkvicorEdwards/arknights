@@ -22,9 +22,6 @@ import time
 
 # 使用命令: adb devices
 selected_device = "xxxxxxxx"
-# 屏幕分辨率(可通过截图获得)
-resolution_x = 3120
-resolution_y = 1440
 
 ## 屏幕左边界 = 屏幕上边界 = 0
 ## 屏幕右边界 = resolution_x
@@ -32,25 +29,58 @@ resolution_y = 1440
 ## 文字在屏幕中的 左边界 上边界 右边界 下边界
 ## 推荐使用开发者模式精确定位
 
-# 开始行动
-resolution_1 = (2730, 1287, 2943, 1342)
-# 本次行动配置不可更改
-resolution_2 = (1290, 1360, 1790, 1410)
-# 接管作战
-resolution_3 = (1290, 1270, 1490, 1350)
-# 行动结束
-resolution_4 = (140, 1170, 850, 1340)
-# 理智已恢复
-resolution_5 = (1680, 676, 1910, 757)
-# 剩余理智
-resolution_v1 = (2730, 50, 3000, 110)
-# 关卡需要理智
-resolution_v2 = (2850, 1355, 2955, 1404)
+### ===== 3120x1440 ===== ###
 
-press_enter = (2750,1330)
-press_start = (2480,940)
-press_finished = (700,1000)
-press_lvup = (600, 740)
+# 屏幕分辨率(可通过截图获得)
+#resolution_x = 3120
+#resolution_y = 1440
+
+# 开始行动
+#resolution_1 = (2730, 1287, 2943, 1342)
+# 本次行动配置不可更改
+#resolution_2 = (1290, 1360, 1790, 1410)
+# 接管作战
+#resolution_3 = (1290, 1270, 1490, 1350)
+# 行动结束
+#resolution_4 = (140, 1170, 850, 1340)
+# 理智已恢复
+#resolution_5 = (1680, 676, 1910, 757)
+# 剩余理智
+#resolution_v1 = (2730, 50, 3000, 110)
+# 关卡需要理智
+#resolution_v2 = (2850, 1355, 2955, 1404)
+
+#press_enter = (2750,1330)
+#press_start = (2480,940)
+#press_finished = (700,1000)
+#press_lvup = (600, 740)
+### ===== END ===== ##
+
+### ===== 1920x1080 ===== ###
+# 屏幕分辨率(可通过截图获得)
+resolution_x = 1920
+resolution_y = 1080
+
+# 开始行动
+resolution_1 = (1670, 960, 1850, 1012)
+# 本次行动配置不可更改
+resolution_2 = (750, 1010, 1140, 1065)
+# 接管作战
+resolution_3 = (755, 941, 910, 1015)
+# 行动结束
+resolution_4 = (40,862 ,605 , 1022)
+# 理智已恢复
+resolution_5 = (1, 2, 3, 4)
+# 剩余理智
+resolution_v1 = (1679, 33, 1850, 96)
+# 关卡需要理智
+resolution_v2 = (1770, 1017, 1838, 1059)
+
+press_enter = (1707,975)
+press_start = (1640,700)
+press_finished = (300,800)
+press_lvup = (300, 340)
+### ===== END ===== ###
 
 #======================================================
 sel_device = ""
@@ -72,6 +102,7 @@ def main():
             os.remove("03.png")
             #os.remove("v1.png")
             #os.remove("v2.png")
+            pass
         except:
             pass
         p = subprocess.Popen('adb %s shell screencap -p /sdcard/00.png'%sel_device, stdout=subprocess.PIPE, shell=True)
