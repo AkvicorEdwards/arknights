@@ -28,33 +28,17 @@ selected_device = "xxxxxxxx"
 ## 屏幕下边界 = resolution_y
 ## 文字在屏幕中的 左边界 上边界 右边界 下边界
 ## 推荐使用开发者模式精确定位
-
-### ===== 3120x1440 ===== ###
-
-# 屏幕分辨率(可通过截图获得)
-#resolution_x = 3120
-#resolution_y = 1440
-
-# 开始行动
-#resolution_1 = (2730, 1287, 2943, 1342)
-# 本次行动配置不可更改
-#resolution_2 = (1290, 1360, 1790, 1410)
-# 接管作战
-#resolution_3 = (1290, 1270, 1490, 1350)
-# 行动结束
-#resolution_4 = (140, 1170, 850, 1340)
-# 理智已恢复
-#resolution_5 = (1680, 676, 1910, 757)
-# 剩余理智
-#resolution_v1 = (2730, 50, 3000, 110)
-# 关卡需要理智
-#resolution_v2 = (2850, 1355, 2955, 1404)
-
-#press_enter = (2750,1330)
-#press_start = (2480,940)
-#press_finished = (700,1000)
-#press_lvup = (600, 740)
-### ===== END ===== ##
+Use_Free = False
+Use_Pay  = False
+Pay_Times = 0
+if len(sys.argv) >= 2:
+    print("Use Free")
+    Use_Free = sys.argv[1] == '1'
+if len(sys.argv) >= 4:
+    print("Use Pay ", end='')
+    Use_Pay = sys.argv[2] == '1'
+    Pay_Times = int(sys.argv[3])
+    print(Pay_Times)
 
 ### ===== 1920x1080 ===== ###
 # 屏幕分辨率(可通过截图获得)
@@ -70,16 +54,21 @@ resolution_3 = (755, 941, 910, 1015)
 # 行动结束
 resolution_4 = (40,862 ,605 , 1022)
 # 理智已恢复
-resolution_5 = (1, 2, 3, 4)
+resolution_5 = (1048, 500, 1231, 556)
 # 剩余理智
 resolution_v1 = (1679, 33, 1850, 96)
 # 关卡需要理智
 resolution_v2 = (1770, 1017, 1838, 1059)
+# 使用药剂恢复
+rec_free = (1100, 136, 1298, 182)
+# 剩余至纯源石
+rec_pay = (1440, 210, 1660, 250)
 
 press_enter = (1707,975)
 press_start = (1640,700)
 press_finished = (300,800)
 press_lvup = (300, 340)
+press_rec = (1633, 860)
 ### ===== END ===== ###
 
 #======================================================
@@ -97,11 +86,6 @@ def main():
     while True:
         try:
             os.remove("00.png")
-            os.remove("01.png")
-            os.remove("02.png")
-            os.remove("03.png")
-            #os.remove("v1.png")
-            #os.remove("v2.png")
             pass
         except:
             pass
@@ -143,7 +127,6 @@ def main():
                     val1 += int(j)
                 break
             imv2 = im.crop(resolution_v2)
-            im.close()
             imv2.save(r"v2.png")
             imv2.close()
             res = ocr.ocr("v2.png")
@@ -164,13 +147,13 @@ def main():
             if run_cnt > 0:
                 print("")
                 run_cnt = 0
-            #print("Remain: %d"%(val1//val2))
             print("Remain: %d   %d/%d"%(val1//val2, val1, val2))
+            p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_enter[0],press_enter[1]), stdout=subprocess.PIPE, shell=True)
+            p.wait()
             if val1 // val2 >= 1:
-                p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_enter[0],press_enter[1]), stdout=subprocess.PIPE, shell=True)
-                p.wait()
-            time.sleep(2)
-            continue
+                im.close()
+                time.sleep(2)
+                continue
 
         im2 = im.crop(resolution_2)
         im2.save(r"02.png")
@@ -277,11 +260,61 @@ def main():
             time.sleep(1)
             continue
 
+        if Use_Free or Use_Pay:
+            imr1 = im.crop(rec_free)
+            imr1.save(r"r1.png")
+            imr1.close()
+            res = ocr.ocr("r1.png")
+            for r in res:
+                if '使' in r:
+                    n += 1
+                if '用' in r:
+                    n += 1
+                if '药' in r:
+                    n += 1
+                if '剂' in r:
+                    n += 1
+                if '恢' in r:
+                    n += 1
+                if '复' in r:
+                    n += 1
+            if n >= 5:
+                n = 0
+                imr2 = im.crop(rec_pay)
+                imr2.save(r"r2.png")
+                imr2.close()
+                res = ocr.ocr("r2.png")
+                for r in res:
+                    if '剩' in r:
+                        n += 1
+                    if '余' in r:
+                        n += 1
+                    if '至' in r:
+                        n += 1
+                    if '纯' in r:
+                        n += 1
+                    if '源' in r:
+                        n += 1
+                    if '石' in r:
+                        n += 1
+                if n >= 6:
+                    global Pay_Times
+                    if Pay_Times <= 0:
+                        if run_cnt > 0:
+                            print("")
+                            run_cnt = 0
+                        continue
+                    Pay_Times -= 1
+                    print("Pay", Pay_Times)
+                p = subprocess.Popen('adb %s shell input tap %d %d'%(sel_device,press_rec[0],press_rec[1]), stdout=subprocess.PIPE, shell=True)
+                p.wait()
+                im.close()
+                time.sleep(3)
+                continue
 
         if run_cnt > 0:
             print("")
             run_cnt = 0
-        print("No Action")
         im.close()
         time.sleep(2)
 
