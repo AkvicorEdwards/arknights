@@ -7,7 +7,6 @@
 """
 
 import os
-import resource
 import subprocess
 import sys
 
